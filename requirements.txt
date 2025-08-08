@@ -18,4 +18,5 @@ pillow
 pytesseract
 opencv-python
 reportlab
+tesseract-ocr
 
