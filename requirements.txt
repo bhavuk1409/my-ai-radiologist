@@ -13,3 +13,9 @@ sse_starlette
 pytesseract
 pdf2image
 fpdf
+streamlit
+pillow
+pytesseract
+opencv-python
+reportlab
+
