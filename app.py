@@ -11,21 +11,20 @@ import pytesseract
 from fpdf import FPDF
 import io
 
+from pdf2image import convert_from_bytes 
+
 # Load env
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 
-# If on Windows and tesseract not on PATH, set:
-# pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 st.set_page_config(page_title="RadiMate AI - Multi-Image Radiology Report Generator")
 st.title("RadiMate AI — Multi-Image Radiology OCR & Report Generator")
-st.write("Upload one or more radiology report images (JPG/PNG/TIFF/BMP). I'll analyse them together and produce a formal PDF report.")
+st.write("Upload one or more radiology report images or PDFs. I'll analyse them together and produce a formal PDF report.")
 
-# File uploader for multiple images
+# File uploader for multiple images + PDFs
 uploaded_files = st.file_uploader(
-    "Upload radiology report images",
-    type=['png', 'jpg', 'jpeg', 'bmp', 'tiff'],
+    "Upload radiology report images or PDFs",
+    type=['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'pdf'],
     accept_multiple_files=True
 )
 
@@ -79,14 +78,22 @@ def create_pdf_from_text(title: str, body: str) -> bytes:
 
 # Main flow
 if uploaded_files:
-    with st.spinner("Processing images and generating combined report..."):
+    with st.spinner("Processing files and generating combined report..."):
         all_texts = []
         for file in uploaded_files:
             try:
-                img = Image.open(io.BytesIO(file.read()))
-                text = extract_text_from_image(img)
-                if text:
-                    all_texts.append(text)
+                if file.type == "application/pdf":
+                    # Convert each PDF page to image
+                    pdf_images = convert_from_bytes(file.read())
+                    for page_img in pdf_images:
+                        text = extract_text_from_image(page_img)
+                        if text:
+                            all_texts.append(text)
+                else:
+                    img = Image.open(io.BytesIO(file.read()))
+                    text = extract_text_from_image(img)
+                    if text:
+                        all_texts.append(text)
             except Exception as e:
                 st.error(f"OCR failed for {file.name}: {e}")
 
@@ -116,6 +123,7 @@ if uploaded_files:
             else:
                 st.error("No report generated from LLM.")
         else:
-            st.error("No text found in uploaded images.")
+            st.error("No text found in uploaded files.")
 else:
-    st.info("Please upload one or more radiology report images above.")
+    st.info("Please upload one or more radiology report images or PDFs above.")
+
