@@ -66,7 +66,7 @@ Your expertise is in interpreting and analysing radiology reports, including CT 
 )
 
 # LLM and chain
-llm = ChatGroq(model="meta-llama/llama-4-maverick-17b-128e-instruct")
+llm = ChatGroq(model="qwen/qwen3-32b")
 output_parser = StrOutputParser()
 chain = prompt | llm | output_parser
 
